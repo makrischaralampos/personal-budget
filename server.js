@@ -112,6 +112,28 @@ app.put("/envelopes/:id", (req, res) => {
   });
 });
 
+// DELETE endpoint to delete a specific envelope by ID
+app.delete("/envelopes/:id", (req, res) => {
+  const { id } = req.params;
+
+  // Find the envelope to be deleted
+  const envelopeIndex = envelopes.findIndex((env) => env.id === parseInt(id));
+
+  // If the envelope is not found, return a 404 error
+  if (envelopeIndex === -1) {
+    return res.status(404).json({ error: "Envelope not found" });
+  }
+
+  // Adjust the total budget before deleting
+  totalBudget -= envelopes[envelopeIndex].budget;
+
+  // Remove the envelope from the array
+  envelopes = envelopes.filter((env) => env.id !== parseInt(id));
+
+  // Send a success response
+  res.status(200).json({ message: "Envelope deleted successfully" });
+});
+
 // Basic GET route to confirm server is running
 app.get("/", (req, res) => {
   res.send("Hello, World");
