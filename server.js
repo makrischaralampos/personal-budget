@@ -44,6 +44,13 @@ app.post("/envelopes", (req, res) => {
   });
 });
 
+// GET endpoint to retrieve all envelopes
+app.get("/envelopes", (req, res) => {
+  res.status(200).json({
+    envelopes: envelopes,
+  });
+});
+
 // Basic GET route to confirm server is running
 app.get("/", (req, res) => {
   res.send("Hello, World");
