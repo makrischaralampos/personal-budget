@@ -3,161 +3,197 @@ let envelopes = [];
 let totalBudget = 0;
 
 // Get all envelopes
-const getAllEnvelopes = (req, res) => {
-  res.status(200).json({
-    envelopes: envelopes,
-  });
+const getAllEnvelopes = (req, res, next) => {
+  try {
+    res.status(200).json({
+      envelopes: envelopes,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Get an envelope by ID
-const getEnvelopeById = (req, res) => {
-  const { id } = req.params;
+const getEnvelopeById = (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-  // Find the envelope with the corresponding ID
-  const envelope = envelopes.find((env) => env.id === parseInt(id));
+    // Find the envelope with the corresponding ID
+    const envelope = envelopes.find((env) => env.id === parseInt(id));
 
-  // If the envelope is not found, return a 404 error
-  if (!envelope) {
-    return res.status(404).json({ error: "Envelope not found" });
+    // If the envelope is not found, return a 404 error
+    if (!envelope) {
+      const error = new Error("Envelope not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Return the found envelope
+    res.status(200).json(envelope);
+  } catch (error) {
+    next(error);
   }
-
-  // Return the found envelope
-  res.status(200).json(envelope);
 };
 
 // Create a new envelope
-const createEnvelope = (req, res) => {
-  const { title, budget } = req.body;
+const createEnvelope = (req, res, next) => {
+  try {
+    const { title, budget } = req.body;
 
-  // Validate request data
-  if (!title || typeof budget !== "number" || budget < 0) {
-    return res.status(400).json({ error: "Invalid envelope data" });
+    // Validate request data
+    if (!title || typeof budget !== "number" || budget < 0) {
+      const error = new Error("Invalid envelope data");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Generate a new ID for the envelope
+    const newId = envelopes.length + 1;
+
+    // Create the new envelope object
+    const newEnvelope = {
+      id: newId,
+      title,
+      budget,
+    };
+
+    // Add the new envelope to the array and update the total budget
+    envelopes.push(newEnvelope);
+    totalBudget += budget;
+
+    // Send a success response
+    res.status(201).json({
+      message: "Envelope created successfully",
+      envelope: newEnvelope,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // Generate a new ID for the envelope
-  const newId = envelopes.length + 1;
-
-  // Create the new envelope object
-  const newEnvelope = {
-    id: newId,
-    title,
-    budget,
-  };
-
-  // Add the new envelope to the array and update the total budget
-  envelopes.push(newEnvelope);
-  totalBudget += budget;
-
-  // Send a success response
-  res.status(201).json({
-    message: "Envelope created successfully",
-    envelope: newEnvelope,
-  });
 };
 
 // Update an envelope
-const updateEnvelope = (req, res) => {
-  const { id } = req.params;
-  const { title, budget, deductAmount } = req.body;
+const updateEnvelope = (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, budget, deductAmount } = req.body;
 
-  // Find the envelope with the corresponding ID
-  const envelope = envelopes.find((env) => env.id === parseInt(id));
+    // Find the envelope with the corresponding ID
+    const envelope = envelopes.find((env) => env.id === parseInt(id));
 
-  // If the envelope is not found, return a 404 error
-  if (!envelope) {
-    return res.status(404).json({ error: "Envelope not found" });
-  }
-
-  // Update the title if provided
-  if (title) {
-    envelope.title = title;
-  }
-
-  // Update the budget if provided
-  if (typeof budget === "number" && budget >= 0) {
-    // Adjust the total budget when updating the budget
-    totalBudget -= envelope.budget;
-    envelope.budget = budget;
-    totalBudget += budget;
-  }
-
-  // Deduct amount from the envelope's budget if provided
-  if (typeof deductAmount === "number" && deductAmount > 0) {
-    if (envelope.budget < deductAmount) {
-      return res
-        .status(400)
-        .json({ error: "Insufficient funds in the envelope" });
+    // If the envelope is not found, return a 404 error
+    if (!envelope) {
+      const error = new Error("Envelope not found");
+      error.statusCode = 404;
+      throw error;
     }
 
-    envelope.budget -= deductAmount;
-    totalBudget -= deductAmount;
-  }
+    // Update the title if provided
+    if (title) {
+      envelope.title = title;
+    }
 
-  // Send a success response with the updated envelope
-  res.status(200).json({
-    message: "Envelope updated successfully",
-    envelope: envelope,
-  });
+    // Update the budget if provided
+    if (typeof budget === "number" && budget >= 0) {
+      // Adjust the total budget when updating the budget
+      totalBudget -= envelope.budget;
+      envelope.budget = budget;
+      totalBudget += budget;
+    }
+
+    // Deduct amount from the envelope's budget if provided
+    if (typeof deductAmount === "number" && deductAmount > 0) {
+      if (envelope.budget < deductAmount) {
+        const error = new Error("Insufficient funds in the envelope");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      envelope.budget -= deductAmount;
+      totalBudget -= deductAmount;
+    }
+
+    // Send a success response with the updated envelope
+    res.status(200).json({
+      message: "Envelope updated successfully",
+      envelope: envelope,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Delete an envelope
-const deleteEnvelope = (req, res) => {
-  const { id } = req.params;
+const deleteEnvelope = (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-  // Find the envelope to be deleted
-  const envelopeIndex = envelopes.findIndex((env) => env.id === parseInt(id));
+    // Find the envelope to be deleted
+    const envelopeIndex = envelopes.findIndex((env) => env.id === parseInt(id));
 
-  // If the envelope is not found, return a 404 error
-  if (envelopeIndex === -1) {
-    return res.status(404).json({ error: "Envelope not found" });
+    // If the envelope is not found, return a 404 error
+    if (envelopeIndex === -1) {
+      const error = new Error("Envelope not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Adjust the total budget before deleting
+    totalBudget -= envelopes[envelopeIndex].budget;
+
+    // Remove the envelope from the array
+    envelopes = envelopes.filter((env) => env.id !== parseInt(id));
+
+    // Send a success response
+    res.status(200).json({ message: "Envelope deleted successfully" });
+  } catch (error) {
+    next(error);
   }
-
-  // Adjust the total budget before deleting
-  totalBudget -= envelopes[envelopeIndex].budget;
-
-  // Remove the envelope from the array
-  envelopes = envelopes.filter((env) => env.id !== parseInt(id));
-
-  // Send a success response
-  res.status(200).json({ message: "Envelope deleted successfully" });
 };
 
 // Transfer budget between envelopes
-const transferBudget = (req, res) => {
-  const { from, to } = req.params;
-  const { amount } = req.body;
+const transferBudget = (req, res, next) => {
+  try {
+    const { from, to } = req.params;
+    const { amount } = req.body;
 
-  // Validate the amount
-  if (typeof amount !== "number" || amount <= 0) {
-    return res.status(400).json({ error: "Invalid transfer amount" });
+    // Validate the amount
+    if (typeof amount !== "number" || amount <= 0) {
+      const error = new Error("Invalid transfer amount");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Find the source and destination envelopes
+    const fromEnvelope = envelopes.find((env) => env.id === parseInt(from));
+    const toEnvelope = envelopes.find((env) => env.id === parseInt(to));
+
+    // Check if both envelopes exist
+    if (!fromEnvelope || !toEnvelope) {
+      const error = new Error("One or both envelopes are not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Check if the source envelope has enough funds
+    if (fromEnvelope.budget < amount) {
+      const error = new Error("Insufficient funds in the source envelope");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Perform the transfer
+    fromEnvelope.budget -= amount;
+    toEnvelope.budget += amount;
+
+    // Send a success response with the updated envelopes
+    res.status(200).json({
+      message: "Transfer completed successfully",
+      fromEnvelope: fromEnvelope,
+      toEnvelope: toEnvelope,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // Find the source and destination envelopes
-  const fromEnvelope = envelopes.find((env) => env.id === parseInt(from));
-  const toEnvelope = envelopes.find((env) => env.id === parseInt(to));
-
-  // Check if both envelopes exist
-  if (!fromEnvelope || !toEnvelope) {
-    return res.status(404).json({ error: "One or both envelopes not found" });
-  }
-
-  // Check if the source envelope has enough funds
-  if (fromEnvelope.budget < amount) {
-    return res
-      .status(400)
-      .json({ error: "Insufficient funds in the source envelope" });
-  }
-
-  // Perform the transfer
-  fromEnvelope.budget -= amount;
-  toEnvelope.budget += amount;
-
-  // Send a success response with the updated envelopes
-  res.status(200).json({
-    message: "Transfer completed successfully",
-    fromEnvelope: fromEnvelope,
-    toEnvelope: toEnvelope,
-  });
 };
 
 module.exports = {

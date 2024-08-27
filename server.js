@@ -1,6 +1,7 @@
 // Import the Express library
 const express = require("express");
 const envelopeRoutes = require("./routes/envelopeRoutes");
+const errorHandler = require("./middlewares/errorHandler");
 
 // Create an instance of an Express app
 const app = express();
@@ -18,6 +19,9 @@ app.use("/envelopes", envelopeRoutes);
 app.get("/", (req, res) => {
   res.send("Hello, World");
 });
+
+// Use the error-handling middleware (this should be the last middleware)
+app.use(errorHandler);
 
 // Start the server
 app.listen(PORT, () => {
