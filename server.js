@@ -51,6 +51,22 @@ app.get("/envelopes", (req, res) => {
   });
 });
 
+// GET endpoint to retrieve a specific envelope by ID
+app.get("/envelopes/:id", (req, res) => {
+  const { id } = req.params;
+
+  // Find the envelope with the corresponding ID
+  const envelope = envelopes.find((env) => env.id === parseInt(id));
+
+  // If the envelope is not found, return a 404 error
+  if (!envelope) {
+    return res.status(404).json({ error: "Envelope not found" });
+  }
+
+  // Return the found envelope
+  res.status(200).json(envelope);
+});
+
 // Basic GET route to confirm server is running
 app.get("/", (req, res) => {
   res.send("Hello, World");
