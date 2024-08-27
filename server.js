@@ -134,6 +134,44 @@ app.delete("/envelopes/:id", (req, res) => {
   res.status(200).json({ message: "Envelope deleted successfully" });
 });
 
+// POST endpoint to transfer budget between envelopes
+app.post("/envelopes/transfer/:from/:to", (req, res) => {
+  const { from, to } = req.params;
+  const { amount } = req.body;
+
+  // Validate the amount
+  if (typeof amount !== "number" || amount <= 0) {
+    return res.status(400).json({ error: "Invalid transfer amount" });
+  }
+
+  // Find the source and destination envelopes
+  const fromEnvelope = envelopes.find((env) => env.id === parseInt(from));
+  const toEnvelope = envelopes.find((env) => env.id === parseInt(to));
+
+  // Check if both envelopes exist
+  if (!fromEnvelope || !toEnvelope) {
+    return res.status(404).json({ error: "One or both envelopes not found" });
+  }
+
+  // Check if the source envelope has enough funds
+  if (fromEnvelope.budget < amount) {
+    return res
+      .status(400)
+      .json({ error: "Insufficient funds in the source envelope" });
+  }
+
+  // Perform the transfer
+  fromEnvelope.budget -= amount;
+  toEnvelope.budget += amount;
+
+  // Send a success response with the updated envelopes
+  res.status(200).json({
+    message: "Transfer completed successfully",
+    fromEnvelope: fromEnvelope,
+    toEnvelope: toEnvelope,
+  });
+});
+
 // Basic GET route to confirm server is running
 app.get("/", (req, res) => {
   res.send("Hello, World");
