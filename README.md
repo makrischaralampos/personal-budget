@@ -170,4 +170,4 @@ Use Postman or similar tools to test the API endpoints.
 
 ## License
 
-This project is licensed undet the MIT License - see the LICENSE file for details.
+This project is licensed undet the MIT License - see the [LICENSE](/LICENSE) file for details.
