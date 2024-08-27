@@ -67,6 +67,51 @@ app.get("/envelopes/:id", (req, res) => {
   res.status(200).json(envelope);
 });
 
+// PUT endpoint to update a specific envelope by ID
+app.put("/envelopes/:id", (req, res) => {
+  const { id } = req.params;
+  const { title, budget, deductAmount } = req.body;
+
+  // Find the envelope with the corresponding ID
+  const envelope = envelopes.find((env) => env.id === parseInt(id));
+
+  // If the envelope is not found, return a 404 error
+  if (!envelope) {
+    return res.status(404).json({ error: "Envelope not found" });
+  }
+
+  // Update the title if provided
+  if (title) {
+    envelope.title = title;
+  }
+
+  // Update the budget if provided
+  if (typeof budget === "number" && budget >= 0) {
+    // Adjust the total budget when updating the budget
+    totalBudget -= envelope.budget;
+    envelope.budget = budget;
+    totalBudget += budget;
+  }
+
+  // Deduct amount from the envelope's budget if provided
+  if (typeof deductAmount === "number" && deductAmount > 0) {
+    if (envelope.budget < deductAmount) {
+      return res
+        .status(400)
+        .json({ error: "Insufficient funds in the envelope" });
+    }
+
+    envelope.budget -= deductAmount;
+    totalBudget -= deductAmount;
+  }
+
+  // Send a success response with the updated envelope
+  res.status(200).json({
+    message: "Envelope updated successfully",
+    envelope: envelope,
+  });
+});
+
 // Basic GET route to confirm server is running
 app.get("/", (req, res) => {
   res.send("Hello, World");
