@@ -1,4 +1,9 @@
 const AppError = require("../utils/AppError");
+const {
+  createEnvelopeSchema,
+  updateEnvelopeSchema,
+  transferBudgetSchema,
+} = require("../validation/envelopeValidation");
 
 // Global variables to store envelopes and total budget
 let envelopes = [];
@@ -38,13 +43,14 @@ const getEnvelopeById = (req, res, next) => {
 // Create a new envelope
 const createEnvelope = (req, res, next) => {
   try {
-    const { title, budget } = req.body;
+    const { error, value } = createEnvelopeSchema.validate(req.body);
 
     // Validate request data
-    if (!title || typeof budget !== "number" || budget < 0) {
-      return next(new AppError("Invalid envelope data", 400));
+    if (error) {
+      return next(new AppError(error.details[0].message, 400));
     }
 
+    const { title, budget } = value;
     // Generate a new ID for the envelope
     const newId = envelopes.length + 1;
 
@@ -73,7 +79,11 @@ const createEnvelope = (req, res, next) => {
 const updateEnvelope = (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, budget, deductAmount } = req.body;
+    const { error, value } = updateEnvelopeSchema.validate(req.body);
+
+    if (error) {
+      return next(new AppError(error.details[0].message, 400));
+    }
 
     // Find the envelope with the corresponding ID
     const envelope = envelopes.find((env) => env.id === parseInt(id));
@@ -82,6 +92,8 @@ const updateEnvelope = (req, res, next) => {
     if (!envelope) {
       return next(new AppError("Envelope not found", 404));
     }
+
+    const { title, budget, deductAmount } = value;
 
     // Update the title if provided
     if (title) {
@@ -146,11 +158,11 @@ const deleteEnvelope = (req, res, next) => {
 const transferBudget = (req, res, next) => {
   try {
     const { from, to } = req.params;
-    const { amount } = req.body;
+    const { error, value } = transferBudgetSchema.validate(req.body);
 
     // Validate the amount
-    if (typeof amount !== "number" || amount <= 0) {
-      return next(new AppError("Invalid transfer amount", 400));
+    if (error) {
+      return next(new AppError(error.details[0].message, 400));
     }
 
     // Find the source and destination envelopes
@@ -161,6 +173,8 @@ const transferBudget = (req, res, next) => {
     if (!fromEnvelope || !toEnvelope) {
       return next(new AppError("One or both envelopes are not found", 404));
     }
+
+    const { amount } = value;
 
     // Check if the source envelope has enough funds
     if (fromEnvelope.budget < amount) {
