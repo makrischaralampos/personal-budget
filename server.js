@@ -1,13 +1,16 @@
+require("dotenv").config(); // Load environment variables from .env file
+
 // Import the Express library
 const express = require("express");
 const envelopeRoutes = require("./routes/envelopeRoutes");
-const errorHandler = require("./middlewares/errorHandler");
+const globalErrorHandler = require("./middlewares/errorHandler");
+const AppError = require("./utils/AppError");
 
 // Create an instance of an Express app
 const app = express();
 
 // Define the port number
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -20,8 +23,13 @@ app.get("/", (req, res) => {
   res.send("Hello, World");
 });
 
-// Use the error-handling middleware (this should be the last middleware)
-app.use(errorHandler);
+// 404 route for undefined routes
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global error handling middleware
+app.use(globalErrorHandler);
 
 // Start the server
 app.listen(PORT, () => {

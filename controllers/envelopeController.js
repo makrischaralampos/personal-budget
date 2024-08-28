@@ -1,3 +1,5 @@
+const AppError = require("../utils/AppError");
+
 // Global variables to store envelopes and total budget
 let envelopes = [];
 let totalBudget = 0;
@@ -23,9 +25,7 @@ const getEnvelopeById = (req, res, next) => {
 
     // If the envelope is not found, return a 404 error
     if (!envelope) {
-      const error = new Error("Envelope not found");
-      error.statusCode = 404;
-      throw error;
+      return next(new AppError("Envelope not found", 404));
     }
 
     // Return the found envelope
@@ -42,9 +42,7 @@ const createEnvelope = (req, res, next) => {
 
     // Validate request data
     if (!title || typeof budget !== "number" || budget < 0) {
-      const error = new Error("Invalid envelope data");
-      error.statusCode = 400;
-      throw error;
+      return next(new AppError("Invalid envelope data", 400));
     }
 
     // Generate a new ID for the envelope
@@ -82,9 +80,7 @@ const updateEnvelope = (req, res, next) => {
 
     // If the envelope is not found, return a 404 error
     if (!envelope) {
-      const error = new Error("Envelope not found");
-      error.statusCode = 404;
-      throw error;
+      return next(new AppError("Envelope not found", 404));
     }
 
     // Update the title if provided
@@ -103,9 +99,7 @@ const updateEnvelope = (req, res, next) => {
     // Deduct amount from the envelope's budget if provided
     if (typeof deductAmount === "number" && deductAmount > 0) {
       if (envelope.budget < deductAmount) {
-        const error = new Error("Insufficient funds in the envelope");
-        error.statusCode = 400;
-        throw error;
+        return next(new AppError("Insufficient funds in the envelope", 400));
       }
 
       envelope.budget -= deductAmount;
@@ -132,9 +126,7 @@ const deleteEnvelope = (req, res, next) => {
 
     // If the envelope is not found, return a 404 error
     if (envelopeIndex === -1) {
-      const error = new Error("Envelope not found");
-      error.statusCode = 404;
-      throw error;
+      return next(new AppError("Envelope not found", 404));
     }
 
     // Adjust the total budget before deleting
@@ -158,9 +150,7 @@ const transferBudget = (req, res, next) => {
 
     // Validate the amount
     if (typeof amount !== "number" || amount <= 0) {
-      const error = new Error("Invalid transfer amount");
-      error.statusCode = 400;
-      throw error;
+      return next(new AppError("Invalid transfer amount", 400));
     }
 
     // Find the source and destination envelopes
@@ -169,16 +159,14 @@ const transferBudget = (req, res, next) => {
 
     // Check if both envelopes exist
     if (!fromEnvelope || !toEnvelope) {
-      const error = new Error("One or both envelopes are not found");
-      error.statusCode = 404;
-      throw error;
+      return next(new AppError("One or both envelopes are not found", 404));
     }
 
     // Check if the source envelope has enough funds
     if (fromEnvelope.budget < amount) {
-      const error = new Error("Insufficient funds in the source envelope");
-      error.statusCode = 400;
-      throw error;
+      return next(
+        new AppError("Insufficient funds in the source envelope", 400)
+      );
     }
 
     // Perform the transfer
