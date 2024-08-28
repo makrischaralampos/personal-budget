@@ -2,6 +2,7 @@ require("dotenv").config(); // Load environment variables from .env file
 
 // Import the Express library
 const express = require("express");
+const authRoutes = require("./routes/authRoutes");
 const envelopeRoutes = require("./routes/envelopeRoutes");
 const globalErrorHandler = require("./middlewares/errorHandler");
 const AppError = require("./utils/AppError");
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+app.use("/auth", authRoutes);
 // Use the envelope routes
 app.use("/envelopes", envelopeRoutes);
 

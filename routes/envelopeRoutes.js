@@ -1,4 +1,5 @@
 const express = require("express");
+const { protect } = require("../controllers/authController");
 const {
   getAllEnvelopes,
   getEnvelopeById,
@@ -9,6 +10,8 @@ const {
 } = require("../controllers/envelopeController");
 
 const router = express.Router();
+
+router.use(protect); // Protect all routes
 
 // Define routes and attach envelope controllers
 router.get("/", getAllEnvelopes);
