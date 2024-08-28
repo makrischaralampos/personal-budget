@@ -1,16 +1,68 @@
 # Personal Budget API
 
-This is a Node.js and Express API for managing a personal budget using Envelope Budgeting principles. The API allows users to create, read, update, and delete budget envelopes, as well as transfer funds between envelopes.
+This is a Node.js and Express API for managing a personal budget using Envelope Budgeting principles. The API allows users to create, read, update, and delete budget envelopes, transfer funds between envelopes, and supports user authentication with JWT.
 
 ## Features
 
 - Create, read, update, and delete budget envelopes
 - Transfer funds between envelopes
-- Basic error handling and validation
+- User authentication with JWT
+- Validation with Joi for request data
+- Centralized error handling with custom error types
 
 ## Endpoints
 
-### Create Envelope
+### User Authentication
+
+**Register a New User**
+
+- **POST /auth/register**
+
+  Request body:
+
+  ```json
+  {
+    "username": "your_username",
+    "password": "your_password"
+  }
+  ```
+
+  Response:
+
+  ```json
+  {
+    "message": "User registered successfully",
+    "userId": 1
+  }
+  ```
+
+**Login**
+
+- **POST /auth/login**
+
+  Request body:
+
+  ```json
+  {
+    "username": "your_username",
+    "password": "your_password"
+  }
+  ```
+
+  Response:
+
+  ```json
+  {
+    "message": "Login successful",
+    "token": "your_jwt_token"
+  }
+  ```
+
+### Envelope Management
+
+All envelope-related routes are protected and require a valid JWT token. Include the token in the `Authorization` header as `Bearer <your_jwt_token>`.
+
+**Create Envelope**
 
 - **POST /envelopes**
 
@@ -36,7 +88,7 @@ This is a Node.js and Express API for managing a personal budget using Envelope 
   }
   ```
 
-### Get All Envelopes
+**Get All Envelopes**
 
 - **GET /envelopes**
 
@@ -59,7 +111,7 @@ This is a Node.js and Express API for managing a personal budget using Envelope 
   }
   ```
 
-### Get Envelope by ID
+**Get Envelope by ID**
 
 - **GET /envelopes/:id**
 
@@ -73,7 +125,7 @@ This is a Node.js and Express API for managing a personal budget using Envelope 
   }
   ```
 
-### Update Envelope
+**Update Envelope**
 
 - **PUT /envelopes/:id**
 
@@ -99,7 +151,7 @@ This is a Node.js and Express API for managing a personal budget using Envelope 
   }
   ```
 
-### Delete Envelope
+**Delete Envelope**
 
 - **DELETE /envelopes/:id**
 
@@ -111,7 +163,7 @@ This is a Node.js and Express API for managing a personal budget using Envelope 
   }
   ```
 
-### Transfer Funds Between Envelopes
+**Transfer Funds Between Envelopes**
 
 - **POST /envelopes/transfer/:from/:to**
 
@@ -156,7 +208,16 @@ cd personal-budget
 npm install
 ```
 
-3. **Start the Server:**
+3. **Set Environment Variables:**
+
+Create a `.env` file in the root of your project and add the following:
+
+```bash
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=1h
+```
+
+4. **Start the Server:**
 
 ```bash
 node server.js
@@ -166,7 +227,7 @@ The server will run on `http://localhost:3000`.
 
 ## Testing
 
-Use Postman or similar tools to test the API endpoints.
+Use Postman or similar tools to test the API endpoints. Make sure to include the JWT token in the `Authorization` header for protected routes.
 
 ## License
 
